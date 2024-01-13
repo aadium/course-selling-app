@@ -1,8 +1,9 @@
 const express = require('express');
 const { authenticateJwt } = require("../middleware/auth");
-const { SECRET } = require('../secret')
 const { User, Course, Admin } = require("../db");
 const router = express.Router();
+require('dotenv').config();
+const SECRET = process.env.SECRET
 
   router.post('/signup', async (req, res) => {
     const { username, password } = req.body;

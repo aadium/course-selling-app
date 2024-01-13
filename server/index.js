@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const adminRouter = require("./routes/admin");
 const userRouter = require("./routes/user");
-const { MongoDB_URL } = require('./secret')
+require('dotenv').config();
+const MongoDB_URL = process.env.MongoDB_URL
 
 const app = express();
 
@@ -15,7 +16,6 @@ app.use("/user", userRouter)
 
 
 // Connect to MongoDB
-// DONT MISUSE THIS THANKYOU!!
 mongoose.connect(MongoDB_URL, { useNewUrlParser: true, useUnifiedTopology: true, dbName: "courses" });
 
 app.listen(3000, () => console.log('Server running on port 3000'));
