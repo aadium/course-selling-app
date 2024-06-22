@@ -30,8 +30,12 @@ const SECRET = process.env.SECRET
   });
   
   router.get('/courses', authenticateJwt, async (req, res) => {
-    const courses = await Course.find({published: true});
-    res.json({ courses });
+    try {
+      const courses = await Course.find({published: true});
+      res.json({ courses });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch courses', error: error.message });
+    }
   });
   
   router.post('/courses/:courseId', authenticateJwt, async (req, res) => {
