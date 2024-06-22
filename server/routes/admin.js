@@ -1,6 +1,5 @@
-const mongoose = require("mongoose");
 const express = require('express');
-const { User, Course, Admin } = require("../db");
+const { Course, Admin } = require("../db");
 const jwt = require('jsonwebtoken');
 const { authenticateJwt } = require("../middleware/auth");
 require('dotenv').config();
@@ -19,22 +18,21 @@ router.get("/me", authenticateJwt, async (req, res) => {
     })
 });
 
-router.post('/signup', (req, res) => {
+router.post('/signup', async (req, res) => {
     const { username, password } = req.body;
-    function callback(admin) {
-      if (admin) {
-        res.status(403).json({ message: 'Admin already exists' });
-      } else {
-        const obj = { username: username, password: password };
-        const newAdmin = new Admin(obj);
-        newAdmin.save();
-
-        const token = jwt.sign({ username, role: 'admin' }, SECRET, { expiresIn: '1h' });
-        res.json({ message: 'Admin created successfully', token });
+    try {
+      const adminExists = await Admin.findOne({ username });
+      if (adminExists) {
+        return res.status(403).json({ message: 'Admin already exists' });
       }
-  
+      const newAdmin = new Admin({ username, password });
+      await newAdmin.save();
+
+      const token = jwt.sign({ username, role: 'admin' }, SECRET, { expiresIn: '1h' });
+      res.json({ message: 'Admin created successfully', token });
+    } catch (error) {
+      res.status(500).json({ message: 'Error creating admin', error: error.message });
     }
-    Admin.findOne({ username }).then(callback);
   });
   
   router.post('/login', async (req, res) => {
@@ -49,9 +47,13 @@ router.post('/signup', (req, res) => {
   });
   
   router.post('/courses', authenticateJwt, async (req, res) => {
-    const course = new Course(req.body);
-    await course.save();
-    res.json({ message: 'Course created successfully', courseId: course.id });
+    try {
+      const course = new Course(req.body);
+      await course.save();
+      res.json({ message: 'Course created successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to save the course', error: error.message });
+    }
   });
   
   router.put('/courses/:courseId', authenticateJwt, async (req, res) => {
@@ -71,7 +73,11 @@ router.post('/signup', (req, res) => {
   router.get('/course/:courseId', authenticateJwt, async (req, res) => {
     const courseId = req.params.courseId;
     const course = await Course.findById(courseId);
-    res.json({ course });
+    if (course) {
+      res.json({ course });
+    } else {
+      res.status(404).json({ message: 'Course not found' });
+    }
   });
 
   module.exports = router
