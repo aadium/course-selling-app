@@ -1,6 +1,5 @@
-const mongoose = require("mongoose");
 const express = require('express');
-const { User, Course, Admin } = require("../db");
+const { Course, Admin } = require("../db");
 const jwt = require('jsonwebtoken');
 const { authenticateJwt } = require("../middleware/auth");
 require('dotenv').config();
